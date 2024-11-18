@@ -1,4 +1,0 @@
-import dlib
-
-
-print('Installed')
