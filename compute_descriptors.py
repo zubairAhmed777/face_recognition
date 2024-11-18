@@ -1,8 +1,11 @@
 import dlib
+import csv
 import cv2
 import numpy as np
 import pickle
+from tqdm import tqdm
 
+print('\n')
 # Load the pre-trained models
 detector = dlib.get_frontal_face_detector()
 predictor = dlib.shape_predictor('shape_predictor_68_face_landmarks.dat')
@@ -28,18 +31,36 @@ def compute_face_descriptor(image_path):
     return face_descriptor
 
 # Load known image paths and names
-known_images = [
+'''known_images = [
     'images.jpg',
     'zubair.jpeg'
 ]
 known_names = [
     'Robert Downey Jr.',
     'Zubair Ahmed'
-]
+]'''
+
+def get_known_faces_names(source_file):
+    known_images = list()
+    known_names = list()
+    with open(source_file, mode='r') as file:
+        reader = csv.reader(file)
+    
+        # Skip the header row if there's one
+        next(reader)
+    
+        # Iterate over each row in the CSV
+        for row in reader:
+            image_path, name = row
+            known_images.append(image_path)
+            known_names.append(name)
+    return known_images, known_names
+
+known_images, known_names = get_known_faces_names('known_faces.csv')
 
 # Compute and store face descriptors
 known_face_descriptors = []
-for img_path, name in zip(known_images, known_names):
+for img_path, name in tqdm(zip(known_images, known_names), total=len(known_images), desc="Generating descriptors"):
     descriptor = compute_face_descriptor(img_path)
     if descriptor:
         known_face_descriptors.append((name, descriptor))
@@ -48,5 +69,5 @@ for img_path, name in zip(known_images, known_names):
 with open('known_face_descriptors.pkl', 'wb') as f:
     pickle.dump(known_face_descriptors, f)
 
-print("Face descriptors saved successfully.")
+print("\nFace descriptors saved successfully in 'known_face_descriptors.pkl'.")
 
